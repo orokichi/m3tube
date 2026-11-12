@@ -14,6 +14,9 @@ export type Settings = {
   pauseHistory: boolean;
   resume: boolean;
   quality: string;
+  aiProvider: 'openrouter' | 'groq';
+  aiKey: string;
+  aiModel: string;
 };
 type State = {
   subs: Sub[];
@@ -35,6 +38,9 @@ export const DEFAULT_SETTINGS: Settings = {
   pauseHistory: false,
   resume: true,
   quality: 'default',
+  aiProvider: 'openrouter',
+  aiKey: '',
+  aiModel: '',
 };
 const KEY = 'm3tube:v1';
 const empty: State = { subs: [], history: [], wl: [], liked: [], disliked: [], searches: [], settings: DEFAULT_SETTINGS };
@@ -125,7 +131,7 @@ export const actions = {
   },
   removeSearch(q: string) { setState((s) => ({ searches: s.searches.filter((x) => x !== q) })); },
   setSettings(p: Partial<Settings>) { setState((s) => ({ settings: { ...s.settings, ...p } })); },
-  exportData() { return JSON.stringify(getState(), null, 2); },
+  exportData() { const s = getState(); return JSON.stringify({ ...s, settings: { ...s.settings, aiKey: '' } }, null, 2); },
   importData(json: string) {
     const p = JSON.parse(json);
     setState(() => ({ ...empty, ...p, settings: { ...DEFAULT_SETTINGS, ...(p.settings || {}) } }));

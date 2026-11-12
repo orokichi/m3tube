@@ -8,6 +8,7 @@ import { actions, getState, useStore } from '@/lib/store';
 import { VideoRow, SubButton, share } from '@/components/cards';
 import { Avatar, Icon, Loader, Sentinel, Switch, useMenu, useSnack } from '@/components/ui';
 import type { VideoItem } from '@/lib/types';
+import AskTube from '@/components/AskTube';
 
 type Chapter = { title: string; start: number; thumb?: string };
 type VideoData = {
@@ -396,6 +397,8 @@ function Watch() {
               {descOpen ? <button onClick={(e) => { e.stopPropagation(); setDescOpen(false); }}>一部を表示</button> : '…もっと見る'}
             </div>
           </div>
+
+          <AskTube id={id} onSeek={(t) => { seek(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }} getTime={() => player.current?.time() || 0} />
 
           {data.chapters.length > 0 && !descOpen && curChapter >= 0 && (
             <div className="row-flex small" style={{ marginBottom: 8 }}>

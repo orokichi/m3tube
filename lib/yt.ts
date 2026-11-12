@@ -183,7 +183,7 @@ export function collect(root: any, opts: { skipShelves?: boolean } = {}) {
 
 // ---------- API helpers ----------
 
-export async function search(q: string, type: string, sort: string, cont?: string) {
+export async function search(q: string, type: string, sort: string, cont?: string, date?: string, dur?: string) {
   const y = await yt();
   if (cont) {
     const r: any = await y.actions.execute('/search', { continuation: cont, parse: true });
@@ -192,6 +192,8 @@ export async function search(q: string, type: string, sort: string, cont?: strin
   const filters: any = {};
   if (type && type !== 'all') filters.type = type;
   if (sort && sort !== 'relevance') filters.sort_by = sort;
+  if (date && date !== 'all') filters.upload_date = date;
+  if (dur && dur !== 'all') filters.duration = dur;
   const r: any = await y.search(q, filters);
   const out = collect(r.page?.contents ?? r.results);
   if (!out.items.length) Object.assign(out, collect(r.results));

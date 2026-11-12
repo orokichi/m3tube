@@ -1,5 +1,6 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { chat, DEFAULT_MODELS } from '@/lib/ai';
 import { actions, DEFAULT_SETTINGS, useStore } from '@/lib/store';
 import { Icon, Switch, useSnack } from '@/components/ui';
 
@@ -51,6 +52,8 @@ export default function Settings() {
         {row('thumb_down', '低評価数を表示', 'Return YouTube Dislike の推定値', <Switch on={st.dislikes} onChange={(v) => actions.setSettings({ dislikes: v })} />)}
         {row('pause_circle', '履歴を一時停止', '再生履歴・検索履歴を保存しない', <Switch on={st.pauseHistory} onChange={(v) => actions.setSettings({ pauseHistory: v })} />)}
       </div>
+      <div className="h2" id="ai">AI（Advanced Search・Ask Tube）</div>
+      <AiSettings />
       <div className="h2">データ</div>
       <div className="card">
         {row('download', 'エクスポート', '登録チャンネル・履歴・設定をJSONで保存', <button className="btn tonal sm" onClick={() => {
@@ -63,6 +66,54 @@ export default function Settings() {
         {row('restart_alt', '設定をリセット', '設定のみ初期値に戻す', <button className="btn outlined sm" onClick={() => { actions.setSettings(DEFAULT_SETTINGS); snack({ msg: '設定をリセットしました' }); }}>リセット</button>)}
       </div>
       <p className="muted small" style={{ marginTop: 24 }}>M3Tube は YouTube の非公式クライアントです。動画データは InnerTube API から取得し、再生は YouTube 公式の埋め込みプレーヤーで行います。YouTube および Google とは関係ありません。</p>
+    </div>
+  );
+}
+
+function AiSettings() {
+  const st = useStore((s) => s.settings);
+  const [show, setShow] = useState(false);
+  const [models, setModels] = useState<string[]>([]);
+  const [status, setStatus] = useState('');
+  const loadModels = async () => {
+    setStatus('モデル一覧を取得中…');
+    try {
+      const r = await fetch(`/api/ai?provider=${st.aiProvider}`, { headers: { 'x-ai-key': st.aiKey } });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || r.status);
+      setModels(j.models); setStatus(`${j.models.length} 件のモデルを取得しました`);
+    } catch (e: any) { setStatus('取得できませんでした: ' + (e.message || e)); }
+  };
+  const test = async () => {
+    setStatus('接続テスト中…');
+    try { const t = await chat([{ role: 'user', content: '「接続OK」とだけ返して' }]); setStatus('✅ ' + t.slice(0, 60)); }
+    catch (e: any) { setStatus('❌ ' + (e.message || e)); }
+  };
+  return (
+    <div className="card">
+      <div className="setting"><Icon n="hub" /><div className="txt"><b>プロバイダー</b><span className="muted small">OpenAI 互換 API を使います。キーはこのブラウザ内にのみ保存されます</span></div>
+        <div className="bgroup">
+          {([['openrouter', 'OpenRouter'], ['groq', 'Groq']] as const).map(([k, l]) => <button key={k} className={`btn sm ${st.aiProvider === k ? 'on' : ''}`} onClick={() => { actions.setSettings({ aiProvider: k, aiModel: '' }); setModels([]); setStatus(''); }}>{l}</button>)}
+        </div>
+      </div>
+      <div className="field">
+        <label>API キー（{st.aiProvider === 'groq' ? 'console.groq.com → API Keys' : 'openrouter.ai → Keys'}）</label>
+        <div className="row-flex">
+          <input style={{ flex: 1, minWidth: 0 }} type={show ? 'text' : 'password'} autoComplete="off" placeholder={st.aiProvider === 'groq' ? 'gsk_...' : 'sk-or-...'} value={st.aiKey} onChange={(e) => actions.setSettings({ aiKey: e.target.value.trim() })} />
+          <button className="icon-btn sl" onClick={() => setShow(!show)} aria-label="表示切替"><Icon n={show ? 'visibility_off' : 'visibility'} /></button>
+        </div>
+      </div>
+      <div className="field">
+        <label>モデル（空欄なら {DEFAULT_MODELS[st.aiProvider]}）</label>
+        <input list="ai-models" placeholder={DEFAULT_MODELS[st.aiProvider]} value={st.aiModel} onChange={(e) => actions.setSettings({ aiModel: e.target.value.trim() })} />
+        <datalist id="ai-models">{models.map((m) => <option key={m} value={m} />)}</datalist>
+      </div>
+      <div className="setting" style={{ flexWrap: 'wrap' }}>
+        <button className="btn tonal sm" onClick={loadModels}><Icon n="list" />モデル一覧</button>
+        <button className="btn filled sm" disabled={!st.aiKey} onClick={test}><Icon n="bolt" />接続テスト</button>
+        {st.aiKey && <button className="btn outlined sm" onClick={() => actions.setSettings({ aiKey: '' })}><Icon n="delete" />キーを削除</button>}
+        <span className="muted small">{status}</span>
+      </div>
     </div>
   );
 }

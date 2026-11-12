@@ -103,6 +103,7 @@ function SearchBar({ mobileOpen, setMobileOpen }: { mobileOpen: boolean; setMobi
         enterKeyHint="search"
       />
       {q && <button className="icon-btn sl" onClick={() => { setQ(''); inputRef.current?.focus(); }} aria-label="クリア"><Icon n="close" /></button>}
+      <button className="icon-btn sl" title="Advanced Search (AI)" aria-label="Advanced Search" onMouseDown={(e) => e.preventDefault()} onClick={() => { setFocus(false); setMobileOpen(false); router.push(`/advanced${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ''}`); }}><Icon n="auto_awesome" /></button>
       <button className="icon-btn tonal" onClick={() => go(q)} aria-label="検索"><Icon n="search" /></button>
       {open && (
         <div className="suggest">
@@ -130,6 +131,7 @@ function DrawerContent({ path, onNav }: { path: string; onNav?: () => void }) {
       {item('/', 'home', 'ホーム')}
       {item('/shorts', 'bolt', 'ショート')}
       {item('/feed/subscriptions', 'subscriptions', '登録チャンネル')}
+      {item('/advanced', 'auto_awesome', 'Advanced Search')}
       <hr />
       <Link href="/feed/you" onClick={onNav}><h4>マイページ <Icon n="chevron_right" size={20} /></h4></Link>
       {item('/feed/history', 'history', '履歴')}

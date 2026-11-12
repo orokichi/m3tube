@@ -24,6 +24,7 @@ function Results() {
       <div className="sticky-chips">
         <div className="chips">
           {TYPES.map(([k, l]) => <button key={k} className={`chip sl ${type === k ? 'on' : ''}`} onClick={() => set('type', k)}>{l}</button>)}
+          <button className="chip sl sparkle" onClick={() => router.push(`/advanced?q=${encodeURIComponent(q)}`)}><Icon n="auto_awesome" size={18} />AIで探す</button>
           <span style={{ width: 1, background: 'var(--md-outline-variant)', margin: '4px 4px' }} />
           {SORTS.map(([k, l]) => <button key={k} className={`chip sl ${sort === k ? 'on' : ''}`} onClick={() => set('sort', k)}>{k === sort && <Icon n="check" size={18} />}{l}</button>)}
         </div>

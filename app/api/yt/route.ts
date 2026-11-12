@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     let maxAge = 300;
     switch (fn) {
       case 'search':
-        data = await Y.search(p.get('q') || '', p.get('type') || 'all', p.get('sort') || 'relevance', cont);
+        data = await Y.search(p.get('q') || '', p.get('type') || 'all', p.get('sort') || 'relevance', cont, p.get('date') || undefined, p.get('dur') || undefined);
         break;
       case 'suggest':
         data = await Y.suggest(p.get('q') || '');
@@ -62,6 +62,22 @@ export async function GET(req: NextRequest) {
       case 'video':
         data = await Y.video(p.get('id')!);
         break;
+      case 'askctx': {
+        const id = p.get('id')!;
+        const [v, c] = await Promise.allSettled([Y.video(id), Y.comments(id, 'TOP_COMMENTS')]);
+        const vd: any = v.status === 'fulfilled' ? v.value : null;
+        let comments: any[] = c.status === 'fulfilled' ? c.value.items : [];
+        if (c.status === 'fulfilled' && c.value.continuation) {
+          try { comments = comments.concat((await Y.comments(id, 'TOP_COMMENTS', c.value.continuation)).items); } catch {}
+        }
+        data = vd ? {
+          title: vd.title, channel: vd.channel?.name, views: vd.views, date: vd.date, likes: vd.likes, duration: vd.duration,
+          description: vd.description, chapters: vd.chapters.map((x: any) => ({ t: x.start, title: x.title })),
+          comments: comments.slice(0, 40).map((x: any) => ({ a: x.author, l: x.likes, t: x.text.slice(0, 400) })),
+        } : { error: 'video' };
+        maxAge = 1800;
+        break;
+      }
       case 'next':
         data = await Y.next(cont!);
         break;
