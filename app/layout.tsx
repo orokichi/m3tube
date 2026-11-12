@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'M3Tube',
   description: 'Material 3 Expressive で作った多機能 YouTube クライアント',
   manifest: '/manifest.webmanifest',
-  icons: { icon: '/icon.svg', apple: '/icon.svg' },
+  icons: { icon: [{ url: '/favicon.png', sizes: '64x64' }, { url: '/icon-192.png', sizes: '192x192' }], apple: '/apple-touch-icon.png' },
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#fff8f7' };
 
