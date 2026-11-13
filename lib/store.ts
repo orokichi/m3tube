@@ -9,6 +9,7 @@ export type Settings = {
   seed: string;
   betaUi: boolean;
   queueEnabled: boolean;
+  miniPlayerEnabled: boolean;
   autoplay: boolean;
   speed: number;
   sponsorblock: boolean;
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   seed: '#c4002b',
   betaUi: false,
   queueEnabled: false,
+  miniPlayerEnabled: false,
   autoplay: true,
   speed: 1,
   sponsorblock: true,

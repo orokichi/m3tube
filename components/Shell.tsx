@@ -7,6 +7,7 @@ import { applyTheme } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { Avatar, Icon, MenuProvider, SnackProvider } from './ui';
 import QueueBar from './QueueBar';
+import GlobalPlayer from './GlobalPlayer';
 
 const NAV = [
   { href: '/', icon: 'home', label: 'ホーム' },
@@ -234,6 +235,7 @@ function Chrome({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
+      <GlobalPlayer />
       <QueueBar />
     </div>
   );

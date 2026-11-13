@@ -56,6 +56,7 @@ export default function Settings() {
       <div className="card">
         {row('science', '新しいUI（ベータ）', 'marked.dev のモーション中心デザインを参考にした実験的UI。浮き上がるトップバーとナビ、ホバーで持ち上がるカードなど、動きのある見た目に切り替わります', <Switch on={st.betaUi} onChange={(v) => actions.setSettings({ betaUi: v })} />)}
         {row('queue_play_next', '再生キュー（実験的）', '動画を「次に見る」リストへ追加できるようになります。動画カードのメニューからキューに追加すると、再生が終わったときに自動で次の動画へ進みます。ホームやチャンネル画面に戻っても、画面下のバーからキューの確認・操作ができます', <Switch on={st.queueEnabled} onChange={(v) => actions.setSettings({ queueEnabled: v })} />)}
+        {row('picture_in_picture_alt', 'ミニプレーヤー（実験的）', '動画を見ている途中にホームやチャンネルへ移動しても、画面右下に小さい再生画面が残って再生が続きます。タップすると再生画面に戻って大きく表示され、×ボタンで再生を止めて閉じられます', <Switch on={st.miniPlayerEnabled} onChange={(v) => actions.setSettings({ miniPlayerEnabled: v })} />)}
       </div>
       <div className="h2" id="ai">AI（Advanced Search・Ask Tube）</div>
       <AiSettings />

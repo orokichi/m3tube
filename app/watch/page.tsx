@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Player, { PlayerHandle } from '@/components/Player';
 import { api, fmtNum, fmtTime, useApi, usePaged } from '@/lib/api';
 import { actions, getState, queueAdvance, useStore } from '@/lib/store';
+import { openWatch, playerHandleRef, registerWatchCallbacks, setSessionTitle, setWatchSlot, unregisterWatchCallbacks } from '@/lib/playerSession';
 import QueueList, { QueueHeader } from '@/components/QueueList';
 import { VideoRow, SubButton, share } from '@/components/cards';
 import { Avatar, Icon, Loader, Sentinel, Switch, useMenu, useSnack } from '@/components/ui';
@@ -142,7 +143,13 @@ function Watch() {
   const snack = useSnack();
   const menu = useMenu();
   const { data, error, loading } = useApi<VideoData>(id ? { fn: 'video', id } : null);
-  const player = useRef<PlayerHandle>(null);
+  // Mini player (experimental): when enabled, the actual player lives in the
+  // Shell (GlobalPlayer) and survives navigation; this page only renders a
+  // placeholder slot and drives the resident player through the shared handle.
+  const miniEnabled = settings.miniPlayerEnabled;
+  const ownPlayer = useRef<PlayerHandle>(null);
+  const player = miniEnabled ? playerHandleRef : ownPlayer;
+  const slotRef = useCallback((el: HTMLDivElement | null) => { setWatchSlot(el); }, []);
   const [theater, setTheater] = useState(false);
   const [loop, setLoop] = useState(false);
   const [ab, setAb] = useState<[number | null, number | null]>([null, null]);
@@ -263,6 +270,14 @@ function Watch() {
     if (settings.autoplay && nextVideo) router.push(`/watch?v=${nextVideo.id}${listParam ? `&list=${listParam}` : ''}`);
   };
 
+  // ---- mini player (experimental): hand this page's video + callbacks to
+  // the resident player in the Shell. On unmount only the callbacks/slot are
+  // released — playback itself keeps going in the mini player.
+  useEffect(() => { if (miniEnabled && id) openWatch(id, start); }, [miniEnabled, id, start]);
+  useEffect(() => { if (miniEnabled) registerWatchCallbacks({ onTick, onEnded, onRate: setRate }); });
+  useEffect(() => () => unregisterWatchCallbacks(), []);
+  useEffect(() => { if (miniEnabled && data) setSessionTitle(data.title); }, [miniEnabled, data]);
+
   // keyboard shortcuts
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -281,7 +296,7 @@ function Watch() {
       else if (key === 'ArrowDown') snack({ msg: `音量 ${p.volume(-5)}%` });
       else if (key === 'm') p.mute();
       else if (key === 't') setTheater((v) => !v);
-      else if (key === 'f') { const el = document.querySelector('.player') as HTMLElement; if (document.fullscreenElement) document.exitFullscreen(); else el?.requestFullscreen?.(); }
+      else if (key === 'f') { const el = document.querySelector(miniEnabled ? '.gp-video' : '.player') as HTMLElement; if (document.fullscreenElement) document.exitFullscreen(); else el?.requestFullscreen?.(); }
       else if (key === '>' || key === '<') { const i = SPEEDS.indexOf(p.rate()); const n = SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, (i < 0 ? 3 : i) + (key === '>' ? 1 : -1)))]; p.setRate(n); snack({ msg: `再生速度 ${n}x` }); }
       else if (key === 'N' && nextVideo) router.push(`/watch?v=${nextVideo.id}`);
       else if (key === '?') setHelp(true);
@@ -291,7 +306,7 @@ function Watch() {
     };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
-  }, [nextVideo, router, snack]);
+  }, [nextVideo, router, snack, miniEnabled]);
 
   const curChapter = useMemo(() => {
     const ch = data?.chapters || [];
@@ -342,8 +357,10 @@ function Watch() {
   const playerEl = (
     <div className="player-box">
       <div className="watch-sticky">
-        <div className="player">
-          <Player ref={player} id={id} start={start} rate={rate} quality={settings.quality} onTick={onTick} onEnded={onEnded} onRate={setRate} />
+        <div className="player" ref={miniEnabled ? slotRef : undefined}>
+          {miniEnabled
+            ? null /* the resident player in the Shell is positioned over this slot */
+            : <Player ref={ownPlayer} id={id} start={start} rate={rate} quality={settings.quality} onTick={onTick} onEnded={onEnded} onRate={setRate} />}
           {segs.length > 0 && data?.duration ? (
             <div className="sb-bar">{segs.map((s, i) => <i key={i} style={{ left: `${(s.segment[0] / data.duration!) * 100}%`, width: `${((s.segment[1] - s.segment[0]) / data.duration!) * 100}%` }} />)}</div>
           ) : null}

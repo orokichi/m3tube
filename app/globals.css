@@ -638,3 +638,29 @@ main.content { padding-top: var(--top-h); min-height: 100vh; transition: padding
 @media (max-width: 791px) {
   .beta-ui .queue-bar { bottom: calc(86px + env(safe-area-inset-bottom)); }
 }
+
+/* ---------- mini player (experimental, settings.miniPlayerEnabled) ----------
+   The resident player (GlobalPlayer) lives in the Shell and is never
+   unmounted across navigation; only this fixed container's rect changes.
+   .gp-watch follows the watch page's .player slot exactly (no transition,
+   it tracks scroll frame by frame); .gp-mini docks bottom-right and
+   animates from the last watch rect. */
+.global-player {
+  position: fixed; z-index: 60; overflow: hidden; background: #000;
+  transition: left .38s var(--spring), top .38s var(--spring), width .38s var(--spring), height .38s var(--spring), border-radius .38s var(--spring);
+}
+.global-player.gp-watch { transition: none; }
+.global-player.gp-mini {
+  border-radius: var(--r-l); background: var(--md-surface-container);
+  box-shadow: 0 16px 40px rgb(0 0 0 / .35), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+  animation: pop .38s var(--spring);
+}
+.gp-video { position: relative; width: 100%; height: 100%; background: #000; }
+.gp-mini .gp-video { height: calc(100% - 52px); }
+.gp-catcher { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; background: transparent; border: 0; cursor: pointer; }
+.gp-bar { height: 52px; display: flex; align-items: center; gap: 2px; padding: 0 6px; background: var(--md-surface-container); }
+.gp-bar .icon-btn { width: 38px; height: 38px; flex-shrink: 0; }
+.gp-title {
+  flex: 1; min-width: 0; text-align: left; font-weight: 600; font-size: 13.5px; line-height: 1.3; padding: 0 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
