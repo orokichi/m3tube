@@ -478,3 +478,119 @@ main.content { padding-top: var(--top-h); min-height: 100vh; transition: padding
 .field input, .field select { height: 48px; border-radius: var(--r-m); border: 1px solid var(--md-outline); background: transparent; padding: 0 14px; font-size: 15px; outline: 0; transition: border-color .2s, border-radius .35s var(--spring); }
 .field input:focus, .field select:focus { border: 2px solid var(--md-primary); border-radius: var(--r-l); }
 .sparkle { background: linear-gradient(135deg, var(--md-primary), var(--md-tertiary)); color: var(--md-on-primary); }
+
+/* ================================================================
+   Beta UI — motion-first design inspired by marked.dev
+   (references organised by interaction: hover / scroll / drag.
+   Cards that lift, elements that reveal, chrome that floats.)
+   Enabled from 設定 > ベータ > 新しいUI（ベータ）. Default OFF:
+   every rule is scoped under .beta-ui, so nothing changes until
+   the class is present on the shell root.
+   ================================================================ */
+.beta-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: .1em; line-height: 1;
+  background: var(--md-primary); color: var(--md-on-primary);
+  border-radius: var(--r-full); padding: 4px 8px; align-self: center;
+  animation: beta-in .6s var(--spring) both;
+}
+.beta-ui {
+  --top-h: 78px;
+  background:
+    radial-gradient(1100px 520px at 88% -8%, color-mix(in srgb, var(--md-primary) 10%, transparent), transparent 62%),
+    radial-gradient(900px 480px at -10% 32%, color-mix(in srgb, var(--md-tertiary) 7%, transparent), transparent 60%),
+    var(--md-surface);
+}
+
+/* reveal on scroll: larger travel + slight scale, springy landing */
+.beta-ui .fadein { animation: beta-in .7s var(--spring) both; }
+@keyframes beta-in { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+
+/* ---------- floating glass chrome ---------- */
+.beta-ui .topbar {
+  top: 10px; left: 10px; right: 10px; height: 58px; padding: 0 10px;
+  border-radius: 29px;
+  background: color-mix(in srgb, var(--md-surface-container) 80%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: 0 12px 32px rgb(0 0 0 / .13), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+}
+.beta-ui .topbar.scrolled {
+  background: color-mix(in srgb, var(--md-surface-container-high) 84%, transparent);
+  box-shadow: 0 16px 38px rgb(0 0 0 / .17), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+}
+.beta-ui .rail {
+  top: calc(var(--top-h) + 6px); left: 10px; bottom: 10px; width: 78px; padding-top: 10px;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--md-surface-container) 80%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: 0 12px 32px rgb(0 0 0 / .12), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+}
+.beta-ui .rail a { border-radius: 24px; transition: transform .35s var(--spring); }
+.beta-ui .rail a:hover { transform: translateY(-2px); }
+.beta-ui .rail a.on .pill { width: 62px; }
+.beta-ui .drawer {
+  top: calc(var(--top-h) + 6px); left: 10px; bottom: 10px;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--md-surface-container-low) 88%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 12px 32px rgb(0 0 0 / .12), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+}
+.beta-ui.with-drawer main.content { padding-left: calc(var(--drawer-w) + 20px); }
+.beta-ui .drawer.modal { top: 0; left: 0; bottom: 0; border-radius: 0 var(--r-xl) var(--r-xl) 0; }
+
+/* search becomes an elevated floating field */
+.beta-ui .search {
+  height: 46px; background: var(--md-surface-container-lowest);
+  box-shadow: 0 5px 18px rgb(0 0 0 / .10), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 70%, transparent);
+}
+.beta-ui .search.open { background: var(--md-surface-container-lowest); }
+
+/* ---------- cards that lift ---------- */
+.beta-ui .grid { gap: 48px 20px; }
+.beta-ui .vcard { transition: transform .45s var(--spring); }
+.beta-ui .vcard:hover { transform: translateY(-6px); }
+.beta-ui .vcard .thumb { box-shadow: 0 2px 10px rgb(0 0 0 / .07); }
+.beta-ui .vcard:hover .thumb { border-radius: 26px; box-shadow: 0 22px 44px rgb(0 0 0 / .22); }
+.beta-ui .vcard:hover .thumb img { transform: scale(1.05); }
+.beta-ui .vrow { transition: transform .45s var(--spring); }
+.beta-ui .vrow:hover { transform: translateY(-3px); }
+.beta-ui .vrow:hover .thumb { border-radius: 26px; box-shadow: 0 16px 34px rgb(0 0 0 / .18); }
+.beta-ui .scard { transition: transform .45s var(--spring); }
+.beta-ui .scard:hover { transform: translateY(-6px); }
+.beta-ui .scard:hover .sthumb { border-radius: 26px; box-shadow: 0 18px 36px rgb(0 0 0 / .2); }
+.beta-ui .crow { border-radius: 26px; transition: background .25s, transform .45s var(--spring); }
+.beta-ui .crow:hover { background: color-mix(in srgb, var(--md-on-surface) 4%, transparent); transform: translateY(-2px); }
+.beta-ui .chapter { border-radius: 22px; }
+.beta-ui .chapter:hover { transform: translateY(-2px); }
+
+/* chips become pills that pop when selected */
+.beta-ui .chip { border-radius: var(--r-full); height: 36px; padding: 0 16px; }
+.beta-ui .chip.on { border-radius: var(--r-full); box-shadow: 0 6px 16px rgb(0 0 0 / .18); }
+.beta-ui .sticky-chips { background: transparent; }
+
+/* ---------- watch / player ---------- */
+.beta-ui .player { border-radius: 34px; box-shadow: 0 26px 54px rgb(0 0 0 / .3); }
+.beta-ui .desc-box {
+  border-radius: 26px; background: var(--md-surface-container-low);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .07), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 45%, transparent);
+}
+.beta-ui .desc-box.open { border-radius: 30px; }
+.beta-ui .ai-card { border-radius: 30px; box-shadow: 0 14px 34px rgb(0 0 0 / .1); }
+.beta-ui .card { border-radius: 30px; box-shadow: 0 8px 24px rgb(0 0 0 / .05); }
+.beta-ui .menu { border-radius: 22px; }
+.beta-ui .dialog { border-radius: 34px; }
+
+/* ---------- mobile: floating pill bottom nav ---------- */
+@media (max-width: 791px) {
+  .beta-ui { --top-h: 70px; }
+  .beta-ui .topbar { top: 8px; left: 8px; right: 8px; height: 54px; border-radius: 27px; }
+  .beta-ui .bottomnav {
+    left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); height: 64px;
+    border-radius: 32px; padding-bottom: 0;
+    background: color-mix(in srgb, var(--md-surface-container) 84%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow: 0 14px 34px rgb(0 0 0 / .2), inset 0 0 0 1px color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+  }
+  .beta-ui main.content { padding-bottom: 104px; }
+  .beta-ui .player { border-radius: 0; box-shadow: none; }
+  .beta-ui .snack { bottom: calc(90px + env(safe-area-inset-bottom)); }
+}

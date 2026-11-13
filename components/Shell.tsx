@@ -162,6 +162,7 @@ function DrawerContent({ path, onNav }: { path: string; onNav?: () => void }) {
 function Chrome({ children }: { children: ReactNode }) {
   const path = usePathname();
   const w = useWidth();
+  const betaUi = useStore((s) => s.settings.betaUi);
   const [modal, setModal] = useState(false);
   const [mini, setMini] = useState(false);
   const [mobileSearch, setMobileSearch] = useState(false);
@@ -182,7 +183,7 @@ function Chrome({ children }: { children: ReactNode }) {
   const menuClick = () => { if (big && !isWatch) setMini(!mini); else setModal(true); };
 
   return (
-    <div className={mode === 'drawer' ? 'with-drawer' : mode === 'rail' ? 'with-rail' : ''}>
+    <div className={`${mode === 'drawer' ? 'with-drawer' : mode === 'rail' ? 'with-rail' : ''}${betaUi ? ' beta-ui' : ''}`}>
       <header className={`topbar ${scrolled ? 'scrolled' : ''}`}>
         {mobileSearch ? (
           <div className="search-wrap"><SearchBar mobileOpen setMobileOpen={setMobileSearch} /></div>
@@ -192,6 +193,7 @@ function Chrome({ children }: { children: ReactNode }) {
             <Link href="/" className="logo" aria-label="M3Tube ホーム">
               <span className="logo-mark"><Icon n="play_arrow" fill /></span>M3Tube<small>JP</small>
             </Link>
+            {betaUi && <span className="beta-badge">BETA</span>}
             <div className="search-wrap hide-sm"><Suspense><SearchBar mobileOpen={false} setMobileOpen={setMobileSearch} /></Suspense></div>
             <div className="spacer show-sm" />
             <button className="icon-btn sl show-sm" aria-label="検索" onClick={() => setMobileSearch(true)}><Icon n="search" /></button>

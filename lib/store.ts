@@ -7,6 +7,7 @@ export type HistItem = VideoItem & { at: number; pos?: number; len?: number };
 export type Settings = {
   theme: 'system' | 'light' | 'dark';
   seed: string;
+  betaUi: boolean;
   autoplay: boolean;
   speed: number;
   sponsorblock: boolean;
@@ -31,6 +32,7 @@ type State = {
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   seed: '#c4002b',
+  betaUi: false,
   autoplay: true,
   speed: 1,
   sponsorblock: true,

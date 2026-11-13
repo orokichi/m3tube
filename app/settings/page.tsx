@@ -52,6 +52,10 @@ export default function Settings() {
         {row('thumb_down', '低評価数を表示', 'Return YouTube Dislike の推定値', <Switch on={st.dislikes} onChange={(v) => actions.setSettings({ dislikes: v })} />)}
         {row('pause_circle', '履歴を一時停止', '再生履歴・検索履歴を保存しない', <Switch on={st.pauseHistory} onChange={(v) => actions.setSettings({ pauseHistory: v })} />)}
       </div>
+      <div className="h2">ベータ</div>
+      <div className="card">
+        {row('science', '新しいUI（ベータ）', 'marked.dev のモーション中心デザインを参考にした実験的UI。浮き上がるトップバーとナビ、ホバーで持ち上がるカードなど、動きのある見た目に切り替わります', <Switch on={st.betaUi} onChange={(v) => actions.setSettings({ betaUi: v })} />)}
+      </div>
       <div className="h2" id="ai">AI（Advanced Search・Ask Tube）</div>
       <AiSettings />
       <div className="h2">データ</div>
