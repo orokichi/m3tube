@@ -8,6 +8,7 @@ export type Settings = {
   theme: 'system' | 'light' | 'dark';
   seed: string;
   betaUi: boolean;
+  queueEnabled: boolean;
   autoplay: boolean;
   speed: number;
   sponsorblock: boolean;
@@ -26,6 +27,8 @@ type State = {
   liked: VideoItem[];
   disliked: string[];
   searches: string[];
+  queue: VideoItem[];
+  queueCurrentId: string | null;
   settings: Settings;
 };
 
@@ -33,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   seed: '#c4002b',
   betaUi: false,
+  queueEnabled: false,
   autoplay: true,
   speed: 1,
   sponsorblock: true,
@@ -45,7 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   aiModel: '',
 };
 const KEY = 'm3tube:v1';
-const empty: State = { subs: [], history: [], wl: [], liked: [], disliked: [], searches: [], settings: DEFAULT_SETTINGS };
+const empty: State = { subs: [], history: [], wl: [], liked: [], disliked: [], searches: [], queue: [], queueCurrentId: null, settings: DEFAULT_SETTINGS };
 
 let state: State = empty;
 let loaded = false;
@@ -119,6 +123,26 @@ export const actions = {
   toggleWL(v: VideoItem) {
     setState((s) => ({ wl: s.wl.some((x) => x.id === v.id) ? s.wl.filter((x) => x.id !== v.id) : [slim(v), ...s.wl] }));
   },
+  // ---- play queue (experimental) ----
+  toggleQueue(v: VideoItem) {
+    setState((s) => ({ queue: s.queue.some((x) => x.id === v.id) ? s.queue.filter((x) => x.id !== v.id) : [...s.queue, slim(v)] }));
+  },
+  removeFromQueue(id: string) { setState((s) => ({ queue: s.queue.filter((x) => x.id !== id) })); },
+  clearQueue() { setState(() => ({ queue: [], queueCurrentId: null })); },
+  moveInQueue(id: string, dir: -1 | 1) {
+    setState((s) => {
+      const i = s.queue.findIndex((x) => x.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= s.queue.length) return {};
+      const q = [...s.queue];
+      [q[i], q[j]] = [q[j], q[i]];
+      return { queue: q };
+    });
+  },
+  setQueueCurrent(id: string | null) {
+    if (getState().queueCurrentId === id) return;
+    setState(() => ({ queueCurrentId: id }));
+  },
   toggleLike(v: VideoItem) {
     setState((s) => ({
       liked: s.liked.some((x) => x.id === v.id) ? s.liked.filter((x) => x.id !== v.id) : [slim(v), ...s.liked],
@@ -139,3 +163,19 @@ export const actions = {
     setState(() => ({ ...empty, ...p, settings: { ...DEFAULT_SETTINGS, ...(p.settings || {}) } }));
   },
 };
+
+/**
+ * Play queue: given the video that just ended, return the next video to play
+ * and advance the queue position (queueCurrentId). Returns null when there is
+ * nothing queued after the current position. If the ended video is not in the
+ * queue, playback continues from the head of the queue.
+ */
+export function queueAdvance(currentId: string): VideoItem | null {
+  const s = getState();
+  const q = s.queue;
+  if (!q.length) return null;
+  const i = q.findIndex((x) => x.id === currentId);
+  const next = i >= 0 ? q[i + 1] || null : q[0];
+  if (next) setState(() => ({ queueCurrentId: next.id }));
+  return next;
+}

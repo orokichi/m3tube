@@ -6,6 +6,7 @@ import { actions, useStore } from '@/lib/store';
 import { applyTheme } from '@/lib/theme';
 import { api } from '@/lib/api';
 import { Avatar, Icon, MenuProvider, SnackProvider } from './ui';
+import QueueBar from './QueueBar';
 
 const NAV = [
   { href: '/', icon: 'home', label: 'ホーム' },
@@ -232,6 +233,8 @@ function Chrome({ children }: { children: ReactNode }) {
           </Link>
         ))}
       </nav>
+
+      <QueueBar />
     </div>
   );
 }

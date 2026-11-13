@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Player, { PlayerHandle } from '@/components/Player';
 import { api, fmtNum, fmtTime, useApi, usePaged } from '@/lib/api';
-import { actions, getState, useStore } from '@/lib/store';
+import { actions, getState, queueAdvance, useStore } from '@/lib/store';
+import QueueList, { QueueHeader } from '@/components/QueueList';
 import { VideoRow, SubButton, share } from '@/components/cards';
 import { Avatar, Icon, Loader, Sentinel, Switch, useMenu, useSnack } from '@/components/ui';
 import type { VideoItem } from '@/lib/types';
@@ -137,6 +138,7 @@ function Watch() {
   const liked = useStore((s) => s.liked.some((x) => x.id === id));
   const disliked = useStore((s) => s.disliked.includes(id));
   const inWL = useStore((s) => s.wl.some((x) => x.id === id));
+  const queueItems = useStore((s) => s.queue);
   const snack = useSnack();
   const menu = useMenu();
   const { data, error, loading } = useApi<VideoData>(id ? { fn: 'video', id } : null);
@@ -158,6 +160,8 @@ function Watch() {
   const lastSave = useRef(0);
 
   useEffect(() => { setTheater(localStorage.getItem('m3tube:theater') === '1'); setRate(getState().settings.speed); }, []);
+  // keep the queue position in sync with the video being watched
+  useEffect(() => { if (settings.queueEnabled && id) actions.setQueueCurrent(id); }, [id, settings.queueEnabled]);
   useEffect(() => { localStorage.setItem('m3tube:theater', theater ? '1' : '0'); }, [theater]);
   useEffect(() => {
     const f = () => setNarrow(window.innerWidth < 1016);
@@ -250,6 +254,12 @@ function Watch() {
   const onEnded = () => {
     actions.setPos(id, 0, 1);
     if (loop) { player.current?.seek(0, true); return; }
+    // experimental play queue: advance through the queue before falling back
+    // to related autoplay. Playlist playback (?list=) keeps its own flow.
+    if (settings.queueEnabled && !listParam) {
+      const nxt = queueAdvance(id);
+      if (nxt) { router.push(`/watch?v=${nxt.id}`); return; }
+    }
     if (settings.autoplay && nextVideo) router.push(`/watch?v=${nextVideo.id}${listParam ? `&list=${listParam}` : ''}`);
   };
 
@@ -420,6 +430,14 @@ function Watch() {
 
   const side = (
     <aside className="side secondary">
+      {settings.queueEnabled && (
+        <div className="card" style={{ padding: 12, marginBottom: 16 }}>
+          <QueueHeader count={queueItems.length} />
+          <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+            <QueueList currentId={id} />
+          </div>
+        </div>
+      )}
       {playlistQueue && (
         <div className="card" style={{ padding: 12, marginBottom: 16 }}>
           <div className="row-flex" style={{ marginBottom: 8 }}><Icon n="playlist_play" /><b>{listParam === 'WL' ? '後で見る' : '高く評価した動画'}</b><span className="muted small">{playlistQueue.findIndex((x) => x.id === id) + 1} / {playlistQueue.length}</span></div>

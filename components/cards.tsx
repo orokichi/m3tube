@@ -8,12 +8,15 @@ function useItemMenu(v: VideoItem) {
   const menu = useMenu();
   const snack = useSnack();
   const inWL = useStore((s) => s.wl.some((x) => x.id === v.id));
+  const queueEnabled = useStore((s) => s.settings.queueEnabled);
+  const inQueue = useStore((s) => s.queue.some((x) => x.id === v.id));
   return (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     menu({
       x: r.right, y: r.bottom,
       items: [
+        ...(queueEnabled && v.kind === 'video' ? [{ icon: inQueue ? 'playlist_remove' : 'queue_play_next', label: inQueue ? 'キューから削除' : 'キューに追加', fn: () => { actions.toggleQueue(v); snack({ msg: inQueue ? 'キューから削除しました' : 'キューに追加しました', action: { label: '元に戻す', fn: () => actions.toggleQueue(v) } }); } }] : []),
         { icon: inWL ? 'playlist_remove' : 'schedule', label: inWL ? '「後で見る」から削除' : '「後で見る」に保存', fn: () => { actions.toggleWL(v); snack({ msg: inWL ? '「後で見る」から削除しました' : '「後で見る」に保存しました', action: { label: '元に戻す', fn: () => actions.toggleWL(v) } }); } },
         { icon: 'share', label: '共有', fn: () => share(v, snack) },
         { icon: 'open_in_new', label: 'YouTubeで開く', fn: () => window.open(`https://www.youtube.com/${v.kind === 'short' ? 'shorts/' : 'watch?v='}${v.id}`, '_blank') },
